@@ -44,11 +44,13 @@ export default function StudentDashboard() {
     if (typeof window !== 'undefined' && user?.role === 'student') {
       try {
         const db = getDb();
-        const activeExams = db.getActiveExams();
+        // Get all exams that are currently available for the student to take
+        // This includes active exams (currently happening) and scheduled exams (upcoming within window)
+        const availableExams = db.getAvailableExamsForStudent();
         const studentSessions = db.getSessionsByStudent(user.id);
         const studentResults = db.getResultsByStudent(user.id);
         
-        setExams(activeExams);
+        setExams(availableExams);
         setSessions(studentSessions);
         setResults(studentResults);
       } catch {

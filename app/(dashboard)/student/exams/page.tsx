@@ -18,6 +18,20 @@ export default function StudentExamsPage() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const [upcomingExams, setUpcomingExams] = useState<Exam[]>([]);
 
+  const getExamStatus = (exam: Exam) => {
+    const now = new Date();
+    const start = new Date(exam.startWindow);
+    const end = new Date(exam.endWindow);
+    
+    if (now < start) {
+      return { type: 'scheduled', label: 'Upcoming', badgeColor: 'bg-yellow-500/20 text-yellow-700' };
+    }
+    if (now > end) {
+      return { type: 'ended', label: 'Ended', badgeColor: 'bg-gray-500/20 text-gray-700' };
+    }
+    return { type: 'active', label: 'Available Now', badgeColor: 'bg-green-500/20 text-green-700' };
+  };
+
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'student')) {
       router.push('/login');
@@ -28,8 +42,10 @@ export default function StudentExamsPage() {
     if (typeof window !== 'undefined' && user?.role === 'student') {
       try {
         const db = getDb();
-        const exams = db.getActiveExams();
-        const upcoming = exams.filter(e => isFuture(new Date(e.endWindow)));
+        // Get all available exams for the student (not draft, not ended)
+        const allAvailable = db.getAvailableExamsForStudent();
+        // Filter to only exams that haven't ended yet
+        const upcoming = allAvailable.filter(e => isFuture(new Date(e.endWindow)));
         setUpcomingExams(upcoming);
       } catch {
         // Database not available
@@ -75,8 +91,8 @@ export default function StudentExamsPage() {
                         <h3 className="font-medium text-lg text-foreground">{exam.title}</h3>
                         <p className="text-sm text-muted-foreground">{exam.description}</p>
                       </div>
-                      <Badge variant="outline" className="bg-green-500/20 text-green-700">
-                        Available
+                      <Badge className={getExamStatus(exam).badgeColor}>
+                        {getExamStatus(exam).label}
                       </Badge>
                     </div>
                     

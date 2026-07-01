@@ -50,6 +50,13 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
         return;
       }
 
+      // Check if exam is in draft mode
+      if (foundExam.status === 'draft') {
+        setError("This exam is not yet published");
+        setExamState("error");
+        return;
+      }
+
       // Check if exam is available
       const now = new Date();
       const startTime = new Date(foundExam.startWindow);

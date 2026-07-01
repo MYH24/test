@@ -426,8 +426,25 @@ class MockDatabase {
 
   getActiveExams(): Exam[] {
     const now = new Date();
+    // Return exams that are either scheduled or active, and are within the available window
+    // Students can see exams that:
+    // 1. Are scheduled or active status
+    // 2. Have started (now >= startWindow)
+    // 3. Have not ended (now <= endWindow)
     return Array.from(this.exams.values()).filter(
-      e => e.status === 'active' && e.startWindow <= now && e.endWindow >= now
+      e => (e.status === 'active' || e.status === 'scheduled') && 
+           new Date(e.startWindow) <= now && 
+           new Date(e.endWindow) >= now
+    );
+  }
+
+  // Get all available exams for students (upcoming and current)
+  getAvailableExamsForStudent(): Exam[] {
+    const now = new Date();
+    // Return all exams (scheduled, active, or published) that students can see
+    // excluding only draft exams
+    return Array.from(this.exams.values()).filter(
+      e => e.status !== 'draft' && new Date(e.endWindow) >= now
     );
   }
 
